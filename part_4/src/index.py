@@ -16,27 +16,39 @@ UNSUPPORTED_FILE_EXTENSIONS_ERROR = f"Unsupported file extension. Only the follo
 
 
 def main(directory, series=None):
-    series_folder = os.listdir(directory)[0].split("/")[-1]
 
-    if not series:
-        series = get_series_code_from_directory(directory)
+    for current_dir, dirs, files in os.walk(directory):
+        series_folder = current_dir.split("/")[-1]
+        series = get_series_code_from_directory(series_folder)
 
-    for file in os.listdir(f"{directory}/{series_folder}"):
-        new_file = get_cleaned_file_name(file, series)
+        if files and series:
+            for current_file in files:
+                current_file_path = os.path.join(current_dir, current_file)
 
-        if file != new_file:
-            os.rename(
-                f"{directory}/{series_folder}/{file}",
-                f"{directory}/{series_folder}/{new_file}",
-            )
+                new_file = get_cleaned_file_name(current_file, series)
+                new_file_path = os.path.join(current_dir, new_file)
 
-            print(file, "->", new_file, "|", Fore.GREEN, f"success", Style.RESET_ALL)
+                if current_file != new_file:
+                    os.rename(
+                        current_file_path,
+                        new_file_path,
+                    )
 
-        else:
-            print(new_file, "|", Fore.YELLOW, "skipped", Style.RESET_ALL)
+                    print(
+                        current_file,
+                        "->",
+                        new_file,
+                        "|",
+                        Fore.GREEN,
+                        f"success",
+                        Style.RESET_ALL,
+                    )
+
+                else:
+                    print(new_file, "|", Fore.YELLOW, "skipped", Style.RESET_ALL)
 
 
-def get_cleaned_file_name(file, series=None):
+def get_cleaned_file_name(file, series="original"):
     file_name = ""
 
     episode_number = get_episode_number(file)
@@ -76,9 +88,8 @@ def get_file_extension(file=None):
 
 
 def get_series_code_from_directory(directory):
-    series_folder = os.listdir(directory)[0].split("/")[-1]
     for name, code in SERIES_LIST:
-        if name.lower() == series_folder.lower():
+        if name.lower() == directory.lower():
             return code
 
 
