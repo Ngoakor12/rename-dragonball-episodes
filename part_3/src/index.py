@@ -1,5 +1,6 @@
 import re
 import os
+from colorama import Fore, Back, Style
 
 SERIES_LIST = [
     ["Dragonball", "original"],
@@ -15,17 +16,24 @@ UNSUPPORTED_FILE_EXTENSIONS_ERROR = f"Unsupported file extension. Only the follo
 
 
 def main(directory, series=None):
-    cleaned_file_names = []
+    series_folder = os.listdir(directory)[0].split("/")[-1]
+
     if not series:
         series = get_series_code_from_directory(directory)
-    series_folder = os.listdir(directory)[0].split("/")[-1]
-    # print(directory)
-    # print(series_folder)
-    for file in os.listdir(f"{directory}/{series_folder}"):
-        print(file)
-        cleaned_file_names.append(get_cleaned_file_name(file, series))
 
-    return cleaned_file_names
+    for file in os.listdir(f"{directory}/{series_folder}"):
+        new_file = get_cleaned_file_name(file, series)
+
+        if file != new_file:
+            os.rename(
+                f"{directory}/{series_folder}/{file}",
+                f"{directory}/{series_folder}/{new_file}",
+            )
+
+            print(file, "->", new_file, "|", Fore.GREEN, f"success", Style.RESET_ALL)
+
+        else:
+            print(new_file, "|", Fore.YELLOW, "skipped", Style.RESET_ALL)
 
 
 def get_cleaned_file_name(file, series=None):
@@ -49,7 +57,7 @@ def get_episode_number(file):
         padded_number_str = str(number).zfill(3)
 
         return padded_number_str
-    print("**", file)
+
     raise ValueError(INVALID_EPISODE_NUMBER_ERROR)
 
 
@@ -75,5 +83,5 @@ def get_series_code_from_directory(directory):
 
 
 if __name__ == "__main__":
-    directory = f"data"
-    print(main(directory))
+    root_directory = f"data"
+    main(root_directory)
