@@ -17,24 +17,31 @@ INVALID_EXTENSION_ERROR = "File should have an extension"
 UNSUPPORTED_FILE_EXTENSIONS_ERROR = f"Unsupported file extension. Only the following file extensions are supported: {', '.join(SUPPORTED_FILE_EXTENSIONS)}"
 
 
-env_vars = sys.argv[1:]
-source_path = env_vars[0]
-target_path = env_vars[1] if os.path.isdir(env_vars[1]) else os.mkdir(env_vars[1])
+def main():
+    env_vars = sys.argv[1:]
+    source_path = env_vars[0]
+    target_path = env_vars[1]
 
+    # create parent directory if it doesn't exist
+    parent_dir = "dragonball-series"
+    if not (os.path.isdir(parent_dir)):
+        print(f"--- creating parent directory: /{parent_dir} ---")
+        os.mkdir(parent_dir)
 
-def main(directory, series=None):
-
-    # create sub directories
+    # create sub-directories if they don't exist yet
     for series in SERIES_LIST:
-        if os.path.exists(os.path.join(target_path).lower()):
-            os.mkdir(os.path.join(target_path, series[0].lower()))
+        series_dir = get_cleaned_series_directory_path(series[0])
+        series_dir_path = os.path.join(target_path, series_dir)
+        if not (os.path.isdir(series_dir_path)):
+            print(f"--- creating series directory: /{series_dir} ---")
+            os.mkdir(series_dir_path)
 
     if not (source_path and target_path):
         raise Exception("source and or target paths missing!")
 
-    for current_dir, dirs, files in os.walk(directory):
-        series_folder = current_dir.split("/")[-1]
-        series = get_series_code_from_directory(series_folder)
+    for current_dir, dirs, files in os.walk(source_path):
+        series_directory = current_dir.split("/")[-1]
+        series = get_series_code_from_directory(series_directory)
 
         if files and series:
             for current_file in files:
@@ -42,9 +49,12 @@ def main(directory, series=None):
 
                 new_file = get_cleaned_file_name(current_file, series)
                 new_file_path = os.path.join(
-                    target_path, current_dir.split("/")[-1].lower(), new_file
+                    target_path,
+                    get_cleaned_series_directory_path(current_dir.split("/")[-1]),
+                    new_file,
                 )
-
+                print("#2", current_file_path)
+                print("#3", new_file_path)
                 shutil.copy2(
                     current_file_path,
                     new_file_path,
@@ -106,6 +116,9 @@ def get_series_code_from_directory(directory):
             return code
 
 
+def get_cleaned_series_directory_path(series):
+    return "-".join(series.lower().split())
+
+
 if __name__ == "__main__":
-    root_directory = source_path
-    main(root_directory)
+    main()
