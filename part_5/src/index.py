@@ -5,7 +5,7 @@ import shutil
 from colorama import Fore, Style
 
 SERIES_LIST = [
-    ["Dragonball", "original"],
+    ["Dragonball", "og"],  # og = original
     ["Dragonball Z", "z"],
     ["Dragonball Z Kai", "z_kai"],
     ["Dragonball GT", "gt"],
@@ -39,45 +39,55 @@ def main():
     if not (source_path and target_path):
         raise Exception("source and or target paths missing!")
 
+    print(f"--- renaming files ---")
+
     for current_dir, dirs, files in os.walk(source_path):
-        series_directory = current_dir.split("/")[-1]
-        series = get_series_code_from_directory(series_directory)
+        series_dir = current_dir.split("/")[-1]
+        series_code = get_series_code_from_directory(series_dir)
 
-        if files and series:
-            for current_file in files:
-                current_file_path = os.path.join(current_dir, current_file)
+        if not (files and series_code):
+            continue
 
-                new_file = get_cleaned_file_name(current_file, series)
-                new_file_path = os.path.join(
-                    target_path,
-                    get_cleaned_series_directory_path(current_dir.split("/")[-1]),
-                    new_file,
+        print(f"--- renaming files in: /{series_dir} ---")
+
+        for current_file in files:
+            current_file_path = os.path.join(current_dir, current_file)
+
+            new_file = get_cleaned_file_name(current_file, series_code)
+            full_target_dir_path = os.path.join(
+                target_path,
+                get_cleaned_series_directory_path(current_dir.split("/")[-1]),
+            )
+            new_file_path = os.path.join(
+                full_target_dir_path,
+                new_file,
+            )
+
+            series_dir_files = os.listdir(full_target_dir_path)
+
+            if current_file == new_file or new_file in series_dir_files:
+                print(
+                    f"{current_file} -> {new_file} | {Fore.YELLOW} skipped {Style.RESET_ALL}"
                 )
-                print("#2", current_file_path)
-                print("#3", new_file_path)
+            else:
+                # this is where the real magic happens :)
                 shutil.copy2(
                     current_file_path,
                     new_file_path,
                 )
 
                 print(
-                    current_file,
-                    "->",
-                    new_file,
-                    "|",
-                    Fore.GREEN,
-                    f"success",
-                    Style.RESET_ALL,
+                    f"{current_file} -> {new_file} | {Fore.GREEN} success {Style.RESET_ALL}"
                 )
 
 
-def get_cleaned_file_name(file, series="original"):
+def get_cleaned_file_name(file, series="og"):
     file_name = ""
 
     episode_number = get_episode_number(file)
     extension = get_file_extension(file)
 
-    if series == "original":
+    if series == "og":
         file_name = f"db-{episode_number}.{extension}"
     else:
         file_name = f"db-{series}-{episode_number}.{extension}"
