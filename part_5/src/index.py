@@ -23,14 +23,15 @@ def main():
     target_path = env_vars[1]
 
     # create parent directory if it doesn't exist
-    parent_dir = "dragonball-series"
-    if not (os.path.isdir(parent_dir)):
+    parent_dir = target_path.split("/")[-1]
+    parent_dir_path = target_path
+    if not (os.path.isdir(parent_dir_path)):
         print(f"--- creating parent directory: /{parent_dir} ---")
-        os.mkdir(parent_dir)
+        os.mkdir(parent_dir_path)
 
     # create sub-directories if they don't exist yet
     for series in SERIES_LIST:
-        series_dir = get_cleaned_series_directory_path(series[0])
+        series_dir = get_immediate_directory_name(series[0])
         series_dir_path = os.path.join(target_path, series_dir)
         if not (os.path.isdir(series_dir_path)):
             print(f"--- creating series directory: /{series_dir} ---")
@@ -56,7 +57,7 @@ def main():
             new_file = get_cleaned_file_name(current_file, series_code)
             full_target_dir_path = os.path.join(
                 target_path,
-                get_cleaned_series_directory_path(current_dir.split("/")[-1]),
+                get_immediate_directory_name(current_dir.split("/")[-1]),
             )
             new_file_path = os.path.join(
                 full_target_dir_path,
@@ -107,7 +108,6 @@ def get_episode_number(file):
 
 
 def get_file_extension(file=None):
-
     file_parts = file.split(".")
     extension = file_parts[-1].lower()
 
@@ -126,7 +126,7 @@ def get_series_code_from_directory(directory):
             return code
 
 
-def get_cleaned_series_directory_path(series):
+def get_immediate_directory_name(series):
     return "-".join(series.lower().split())
 
 
